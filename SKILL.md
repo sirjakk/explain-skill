@@ -90,12 +90,23 @@ Unless they say otherwise, they want to learn, not get answers.
 
 ## Study guides and teaching pages
 
-When they ask for a study guide, exam prep, a cheat sheet, or a page that
-teaches a whole topic, follow [references/teaching-page.md](references/teaching-page.md)
+Always teach in chat first. Only build an HTML teaching page when they want one.
+
+- **They ask for a page** ("make it an HTML page", "a web page", "something
+  interactive"): build it.
+- **The request is big but doesn't say page** ("make a study guide", "help me
+  prepare for the exam", "teach me all of X"): ask once before writing anything
+  long. Offer two choices: here in chat, or an interactive HTML page with
+  diagrams, quizzes, and code boxes. Use the agent's question tool if it has one.
+  Build the page only if they pick it.
+- **Small questions**: never offer a page. Just answer.
+
+When building a page, follow [references/teaching-page.md](references/teaching-page.md)
 and start from [references/teaching-page-template.html](references/teaching-page-template.html).
-They have said they love this format and these colors, so keep both. Each
-lesson goes: one-line idea, the slide's own words, code then a diagram, a worked
-example, a trap, then new questions with hidden answers. Any question that asks
-them to write or fix code gets the template's code editor, with starter code.
+Keep the template's format and colors. Each lesson goes: one-line idea, the
+source's own words, code then a diagram, a worked example, a trap, then new
+questions with hidden answers. Any question that asks them to write or fix code
+gets the template's code editor, with starter code. Set `data-lang` on every
+code block and editor to the language you are writing in.
 
 See [references/examples.md](references/examples.md) for more short answers.

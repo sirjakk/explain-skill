@@ -1,13 +1,12 @@
 # Teaching pages and study guides
 
-Use this when they ask for a study guide, exam prep, a teaching page, a cheat
-sheet, or "teach me everything about X". The short-answer rules still apply to
+Use this only after they asked for an HTML page, or picked it when you offered.
+SKILL.md says when to offer. The short-answer rules still apply to
 every sentence on the page. The page is long because it has many small pieces,
 never because any one piece is long.
 
 Start from [teaching-page-template.html](teaching-page-template.html). It has
 the colors, the boxes, the question cards, and the scripts. Don't redesign it.
-They have said they love this look.
 
 ## Before writing
 
@@ -42,7 +41,8 @@ do this" checkbox saved in localStorage.
    slides.
 2. **One-line idea** in big text. This is the whole lesson in one sentence.
 3. **Slide words box**: the slide's own phrasing in quotes, with the deck and
-   page, such as "Slides 08, p.10". Use the course's terms everywhere after that.
+   page, such as "Slides 08, p.10". No slides? Quote the textbook or the official
+   docs the same way. Use the source's terms everywhere after that.
 4. **Code, then a diagram.** Show the real code from the slides, then a Mermaid
    picture of what it does.
 5. **A worked example with real values**, in a green box. Use a trace table
@@ -77,6 +77,16 @@ do this" checkbox saved in localStorage.
   numbers, indents, closes brackets, checks brackets and `end`s live, saves to
   localStorage, and has a "Compare with answer" button. Questions answered on
   paper, like traces, numbers, or trees, don't get one.
+- **Pick the language yourself.** Put `data-lang` on every editor and on every
+  `<code>` inside `<pre class="code">`, set to the language you wrote that code
+  in: `python`, `javascript`, `typescript`, `java`, `kotlin`, `csharp`, `c`,
+  `cpp`, `go`, `rust`, `swift`, `php`, `ruby`, `elixir`, `lua`, `haskell`, `sql`,
+  `bash`, or `erlang`. Short names like `py`, `js`, and `c++` work too. Set
+  `<body data-lang="...">` when most of the page uses one language. Anything
+  else gets "plain": strings, numbers, and a bracket check. The language decides
+  the colors, the indent size (4 spaces for Python, 2 for the rest), what Enter
+  indents after, and the live check: brackets everywhere, plus `end` and the
+  final period for Erlang, and the closing `:` for Python.
 - Every question has a hidden answer. Harder ones also get a hint first.
 - Some questions should be "fill it in on paper, then press Next to check".
 - Answers show the working, a check against the example, and one line on why.

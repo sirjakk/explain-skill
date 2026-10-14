@@ -19,8 +19,10 @@ Example. Asked "what's the `*` and `&` in `int *p = &x;`?":
 It also uses small diagrams when they're faster than words. For homework, it
 teaches with a different example instead of giving the answer.
 
-For a study guide or exam prep, it builds an HTML teaching page from
-`references/teaching-page-template.html`. Each lesson has the course's own
+For a study guide or exam prep, it teaches in chat and asks if you also want an
+interactive HTML page. If you say yes, it builds one from
+`references/teaching-page-template.html`. Code boxes support Python,
+JavaScript, TypeScript, Java, C, C++, Go, Rust, Erlang, SQL, and more. Each lesson has the course's own
 words, code followed by a diagram, a worked example, a trap to avoid, and new
 practice questions with hidden answers.
 

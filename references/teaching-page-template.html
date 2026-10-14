@@ -7,8 +7,11 @@
   Offline use: download https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js,
   replace the <script src=...mermaid...> tag near the end with an inline <script>
   holding the file (escape any "</script" as "<\/script").
-  The code highlighter and the editor check are tuned for Erlang (class="erl").
-  For other languages, adapt hl() and checkErl().
+  Code language: put data-lang="python" (or javascript, typescript, java, kotlin,
+  csharp, c, cpp, go, rust, swift, php, ruby, elixir, lua, haskell, sql, bash, erlang)
+  on every <code> inside <pre class="code"> and on every editor. Short names work too:
+  py, js, ts, c++, rb, sh. <body data-lang="..."> sets the page default. Anything
+  unknown falls back to "plain": strings, numbers, and a bracket check.
 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -246,7 +249,7 @@ table.trace td{font-family:var(--mono);font-size:14px}
     <div class="src">Slides 04, p.12</div>
   </div>
 
-<pre class="code"><code class="erl">% real code from the slides, with short comments
+<pre class="code"><code data-lang="erlang">% real code from the slides, with short comments
 sum(L) -> sum(L, 0).
 sum([], Acc) -> Acc;
 sum([H | T], Acc) -> sum(T, Acc + H).</code></pre>
@@ -277,10 +280,11 @@ flowchart TB
   <div class="q"><div class="qh"><span class="qn">Q1.1</span><span class="qt">Question title</span><span class="lvl">exam style</span></div>
     <p>A new problem at exam difficulty.</p>
     <!-- Code editor: put one in every question that asks them to write or fix code.
+         data-lang picks the language for colors, indenting, and the live check.
          data-id must be unique on the page (it is the save key). The text/plain script
          holds optional starter code, such as the function head or the buggy code to fix.
          data-placeholder is optional. -->
-    <div class="editor" data-id="q1-1" data-placeholder="Write your answer here. It saves as you type."><script type="text/plain">
+    <div class="editor" data-id="q1-1" data-lang="erlang" data-placeholder="Write your answer here. It saves as you type."><script type="text/plain">
 sum(L) ->
 </script></div>
     <details class="hint"><summary>Hint</summary><div class="ans"><p>A nudge, not the answer.</p></div></details>
@@ -306,65 +310,135 @@ sum(L) ->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>
 (function(){
-/* ---------- Erlang highlighter ---------- */
-const KW = new Set(['when','end','fun','receive','after','case','of','if','andalso','orelse','not','div','rem','band','bor','bxor','try','catch','begin']);
+/* ---------- languages: set data-lang on a code block or editor ---------- */
+const WS=s=>new Set(s.split(' '));
+const CLIKE={line:'//',block:['/*','*/'],str:['"',"'"],indent:/[\{\(\[]$/};
+const JSKW='const let var function return if else for while do switch case break continue new class extends import export from default async await try catch finally throw typeof instanceof in of this null undefined true false yield delete void super static get set';
+const JAVAKW='public private protected static final abstract class interface extends implements return if else for while do switch case break continue new this super null true false void int long double float boolean char byte short try catch finally throw throws import package synchronized var record enum';
+const CKW='int char long short float double void unsigned signed const static struct union enum typedef return if else for while do switch case break continue sizeof goto NULL extern volatile inline';
+const LANGS={
+  erlang:{line:'%',str:['"'],charLit:'$',erl:true,
+    kw:WS('when end fun receive after case of if andalso orelse not div rem band bor bxor bsl bsr try catch begin'),
+    indent:/(->|\bof|\breceive|\bbegin|\bafter|[\(\[\{])$/},
+  python:{line:'#',str:['"',"'"],triple:true,
+    kw:WS('def return if elif else for while in not and or is None True False class import from as with try except finally raise lambda yield pass break continue global nonlocal async await assert del'),
+    indent:/[:\(\[\{]$/, tab:4, colon:WS('def if elif else for while class try except finally with async')},
+  javascript:{...CLIKE,str:['"',"'",'`'],kw:WS(JSKW)},
+  typescript:{...CLIKE,str:['"',"'",'`'],kw:WS(JSKW+' interface type enum implements readonly public private protected as keyof number string boolean any unknown never')},
+  java:{...CLIKE,kw:WS(JAVAKW)},
+  kotlin:{...CLIKE,str:['"',"'"],kw:WS('fun val var class object interface return if else when for while do in is as null true false this super import package private public internal override open data try catch finally throw')},
+  csharp:{...CLIKE,kw:WS(JAVAKW+' using namespace string bool foreach out ref readonly async await')},
+  c:{...CLIKE,kw:WS(CKW)},
+  cpp:{...CLIKE,kw:WS(CKW+' class public private protected template typename namespace using new delete this nullptr true false bool auto virtual override')},
+  go:{...CLIKE,str:['"',"'",'`'],kw:WS('func package import return if else for range switch case break continue go defer chan map struct interface type var const nil true false select default fallthrough')},
+  rust:{...CLIKE,str:['"'],kw:WS('fn let mut const static struct enum impl trait pub use mod return if else match for while loop in break continue self Self true false as ref where move async await dyn unsafe crate super Some None Ok Err')},
+  swift:{...CLIKE,str:['"'],kw:WS('func let var class struct enum protocol extension return if else guard for while repeat in switch case break continue nil true false self import init throws try catch')},
+  php:{...CLIKE,line:'//',kw:WS('function return if else elseif for foreach while do switch case break continue new class public private protected static echo null true false array as use namespace try catch throw')},
+  ruby:{line:'#',str:['"',"'"],kw:WS('def end if elsif else unless while until for in do return class module begin rescue ensure yield nil true false self case when then and or not puts require'),
+    indent:/(\bdo|\bthen|\|[^|]*\||[\(\[\{])$|^\s*(def|class|module|if|unless|while|until|case|begin|else|elsif|when)\b/},
+  elixir:{line:'#',str:['"'],kw:WS('def defp defmodule do end fn if else case cond when with receive after true false nil and or not in import alias use'),indent:/(\bdo|->|[\(\[\{])$/},
+  lua:{line:'--',str:['"',"'"],kw:WS('local function end if then else elseif for in do while repeat until return nil true false and or not break'),indent:/(\bthen|\bdo|\belse|function\b.*\)|[\(\[\{])$/},
+  haskell:{line:'--',str:['"'],kw:WS('module where import data type newtype class instance let in case of if then else do deriving'),indent:/(=|\bwhere|\bdo|\bof|->|[\(\[\{])$/},
+  sql:{line:'--',block:['/*','*/'],str:["'"],ci:true,kw:WS('select from where and or not insert into values update set delete create table drop alter join left right inner outer on group by order having limit as distinct null is in exists union primary key foreign references index view count sum avg min max'),indent:/[\(]$/},
+  bash:{line:'#',str:['"',"'"],kw:WS('if then else elif fi for while do done case esac function return in echo export local'),indent:/(\bthen|\bdo|\{)$/},
+  plain:{str:['"']}
+};
+const ALIAS={erl:'erlang',py:'python',js:'javascript',jsx:'javascript',node:'javascript',ts:'typescript',tsx:'typescript',
+  'c++':'cpp',cc:'cpp',cs:'csharp','c#':'csharp',kt:'kotlin',golang:'go',rs:'rust',rb:'ruby',ex:'elixir',exs:'elixir',
+  hs:'haskell',sh:'bash',shell:'bash',zsh:'bash',text:'plain',txt:'plain',pseudo:'plain',pseudocode:'plain'};
+const DEFLANG=(document.body.dataset.lang||'plain').toLowerCase();
+function langOf(name){ const n=(name||DEFLANG).toLowerCase(); const k=ALIAS[n]||n; return LANGS[k]?k:'plain'; }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function hl(src){
-  let out='', i=0;
-  const re=/(%[^\n]*)|("(?:[^"\\]|\\.)*")|(\$\\?.)|(\b\d+(?:\.\d+)?\b)|(\b[A-Z_][A-Za-z0-9_]*\b)|(\b[a-z][A-Za-z0-9_@]*\b)|(->|=:=|=\/=|=<|>=|\|\||<-|\+\+|!)/g;
-  let m;
-  while((m=re.exec(src))){
-    out+=esc(src.slice(i,m.index)); i=re.lastIndex;
-    const [tok,c,s,ch,n,v,a,o]=m;
-    if(c) out+='<span class="hl-c">'+esc(c)+'</span>';
-    else if(s) out+='<span class="hl-s">'+esc(s)+'</span>';
-    else if(ch) out+='<span class="hl-s">'+esc(ch)+'</span>';
-    else if(n) out+='<span class="hl-n">'+n+'</span>';
-    else if(v) out+='<span class="hl-v">'+v+'</span>';
-    else if(a) out+= KW.has(a)?'<span class="hl-k">'+a+'</span>':'<span class="hl-a">'+a+'</span>';
-    else out+='<span class="hl-o">'+esc(o)+'</span>';
+const OPRE=/^(->|=>|=:=|=\/=|==|!=|<=|>=|=<|&&|\|\||\+\+|::|:=|\|>|<-|!)/;
+/* Walk the source once. emit(kind, text) gets: c comment, s string, n number, w word, o operator, x other. */
+function scan(src,L,emit){
+  let i=0; const n=src.length;
+  while(i<n){
+    const c=src[i], rest=src.startsWith.bind(src);
+    if(L.block && rest(L.block[0],i)){ let j=src.indexOf(L.block[1],i+L.block[0].length); j=j<0?n:j+L.block[1].length; emit('c',src.slice(i,j),i); i=j; continue; }
+    if(L.line && rest(L.line,i)){ let j=src.indexOf('\n',i); j=j<0?n:j; emit('c',src.slice(i,j),i); i=j; continue; }
+    if(L.triple && (rest('"""',i)||rest("'''",i))){ const q=src.slice(i,i+3); let j=src.indexOf(q,i+3); const open=j<0; j=open?n:j+3; emit('s',src.slice(i,j),i,open); i=j; continue; }
+    if(L.str && L.str.includes(c)){ let j=i+1; const multi=(c==='`'||L.erl); while(j<n && src[j]!==c && (multi||src[j]!=='\n')){ if(src[j]==='\\') j++; j++; }
+      const open=!(j<n && src[j]===c); j=open?j:j+1; emit('s',src.slice(i,j),i,open); i=j; continue; }
+    if(L.charLit && c===L.charLit){ const j=i+(src[i+1]==='\\'?3:2); emit('s',src.slice(i,j),i); i=j; continue; }
+    if(/[0-9]/.test(c) && !/[\w@]/.test(src[i-1]||'')){ const m=/^\d[\d_]*(\.\d+)?([eE][+-]?\d+)?/.exec(src.slice(i)); emit('n',m[0],i); i+=m[0].length; continue; }
+    if(/[A-Za-z_]/.test(c)){ const m=(L.erl?/^[A-Za-z_][\w@]*/:/^[A-Za-z_]\w*/).exec(src.slice(i)); emit('w',m[0],i); i+=m[0].length; continue; }
+    const o=OPRE.exec(src.slice(i,i+3)); if(o){ emit('o',o[0],i); i+=o[0].length; continue; }
+    emit('x',c,i); i++;
   }
-  return out+esc(src.slice(i));
 }
-document.querySelectorAll('code.erl').forEach(el=>{ el.innerHTML=hl(el.textContent); });
+function hl(src,lang){
+  const L=LANGS[langOf(lang)]; let out='';
+  scan(src,L,(k,t,i)=>{
+    if(k==='c') out+='<span class="hl-c">'+esc(t)+'</span>';
+    else if(k==='s') out+='<span class="hl-s">'+esc(t)+'</span>';
+    else if(k==='n') out+='<span class="hl-n">'+t+'</span>';
+    else if(k==='o') out+='<span class="hl-o">'+esc(t)+'</span>';
+    else if(k==='w'){
+      const key=L.ci?t.toLowerCase():t;
+      if(L.kw && L.kw.has(key)) out+='<span class="hl-k">'+t+'</span>';
+      else if(L.erl) out+= /^[A-Z_]/.test(t)?'<span class="hl-v">'+t+'</span>':'<span class="hl-a">'+t+'</span>';
+      else if(/^\s*\(/.test(src.slice(i+t.length,i+t.length+3))) out+='<span class="hl-a">'+t+'</span>';
+      else if(/^[A-Z]/.test(t)) out+='<span class="hl-v">'+t+'</span>';
+      else out+=t;
+    }
+    else out+=esc(t);
+  });
+  return out;
+}
+document.querySelectorAll('pre.code code').forEach(el=>{
+  el.innerHTML=hl(el.textContent, el.dataset.lang || (el.classList.contains('erl')?'erlang':undefined));
+});
+
 /* ---------- code editor ---------- */
-const PAIRS={'(':')','[':']','{':'}','"':'"'}, CLOSERS=new Set([')',']','}']);
-function checkErl(src){
-  const stack=[]; let line=1, i=0, last='';
-  const isW=c=>/[A-Za-z0-9_@]/.test(c);
-  while(i<src.length){
-    const c=src[i];
-    if(c==='\n'){line++; i++; continue;}
-    if(c==='%'){ while(i<src.length&&src[i]!=='\n') i++; continue; }
-    if(c==='"'){ const L=line; i++; while(i<src.length&&src[i]!=='"'){ if(src[i]==='\\') i++; if(src[i]==='\n') line++; i++; }
-      if(i>=src.length) return {cls:'bad',msg:'Line '+L+': this string has no closing quote.'}; i++; last='"'; continue; }
-    if(c==='$'){ i+= src[i+1]==='\\'?3:2; last='x'; continue; }
-    if('([{'.includes(c)){ stack.push({c,line}); last=c; i++; continue; }
-    if(CLOSERS.has(c)){ const want={')':'(',']':'[','}':'{'}[c]; const top=stack.pop();
-      if(!top) return {cls:'bad',msg:'Line '+line+': extra "'+c+'" with nothing to close.'};
-      if(top.c!==want) return {cls:'bad',msg:'Line '+line+': "'+c+'" closes "'+top.c+'" from line '+top.line+'.'};
-      last=c; i++; continue; }
-    if(/[a-z]/.test(c) && !isW(src[i-1]||'')){ let j=i; while(j<src.length&&isW(src[j])) j++; const w=src.slice(i,j);
-      if(['case','receive','if','begin','try'].includes(w)) stack.push({c:w,line});
-      else if(w==='fun'){ let k=j; while(src[k]===' ') k++; if(src[k]==='(') stack.push({c:'fun',line}); }
-      else if(w==='end'){ const top=stack.pop();
-        if(!top) return {cls:'bad',msg:'Line '+line+': "end" with no fun, case, receive, or if to close.'};
-        if('([{'.includes(top.c)) return {cls:'bad',msg:'Line '+line+': "end" came before "'+PAIRS[top.c]+'" closed the "'+top.c+'" from line '+top.line+'.'}; }
-      last=w; i=j; continue; }
-    if(!/\s/.test(c)) last=c; i++;
-  }
+function lineOf(src,i){ let n=1; for(let k=0;k<i;k++) if(src[k]==='\n') n++; return n; }
+function checkCode(src,lang){
+  const name=langOf(lang), L=LANGS[name], stack=[], OPEN={')':'(',']':'[','}':'{'}, CL={'(':')','[':']','{':'}'};
+  let err=null, last='', depthAt=[]; const inStr=new Set();
+  scan(src,L,(k,t,i,open)=>{
+    if(err) return;
+    if(k==='s' && t.includes('\n')){ const a=lineOf(src,i), b=a+t.split('\n').length-1; for(let q=a+1;q<=b;q++) inStr.add(q); }
+    if(k==='s' && open){ err={cls:'bad',msg:'Line '+lineOf(src,i)+': this string has no closing quote.'}; return; }
+    if(k==='c') return;
+    if(k==='x' && '([{'.includes(t)) stack.push({c:t,line:lineOf(src,i)});
+    else if(k==='x' && OPEN[t]){ const top=stack.pop(), ln=lineOf(src,i);
+      if(!top) err={cls:'bad',msg:'Line '+ln+': extra "'+t+'" with nothing to close.'};
+      else if(top.c!==OPEN[t]) err={cls:'bad',msg:'Line '+ln+': "'+t+'" closes "'+top.c+'" from line '+top.line+'.'}; }
+    else if(k==='w' && L.erl){
+      if(['case','receive','if','begin','try'].includes(t)) stack.push({c:t,line:lineOf(src,i)});
+      else if(t==='fun' && /^\s*\(/.test(src.slice(i+3))) stack.push({c:'fun',line:lineOf(src,i)});
+      else if(t==='end'){ const top=stack.pop(), ln=lineOf(src,i);
+        if(!top) err={cls:'bad',msg:'Line '+ln+': "end" with no fun, case, receive, or if to close.'};
+        else if(CL[top.c]) err={cls:'bad',msg:'Line '+ln+': "end" came before "'+CL[top.c]+'" closed the "'+top.c+'" from line '+top.line+'.'}; }
+    }
+    if(k!=='x' || !/\s/.test(t)) last=t;
+    if(k==='x' && t==='\n') depthAt[lineOf(src,i)-1]=stack.length;
+  });
+  if(err) return err;
   if(stack.length){ const t=stack[stack.length-1];
-    return '([{'.includes(t.c) ? {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' is still open.'}
-                              : {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' still needs an "end".'}; }
-  if(last!=='.') return {cls:'warn',msg:'Brackets match. A function definition ends with a period.'};
-  return {cls:'ok',msg:'✓ Brackets and ends match. Ends with a period.'};
+    return CL[t.c] ? {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' is still open.'}
+                   : {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' still needs an "end".'}; }
+  if(L.colon){
+    const lines=src.split('\n');
+    for(let k=0;k<lines.length;k++){
+      if(inStr.has(k+1)) continue;
+      const s=lines[k].replace(/#.*$/,'').trim(), first=(s.match(/^[a-z]+/)||[''])[0];
+      if(L.colon.has(first) && !s.endsWith(':') && !s.endsWith('\\') && (depthAt[k]||0)===0 && !/[\(\[\{,]$/.test(s))
+        return {cls:'warn',msg:'Line '+(k+1)+': a "'+first+'" line usually ends with ":".'};
+    }
+  }
+  if(L.erl) return last==='.' ? {cls:'ok',msg:'✓ Brackets and ends match. Ends with a period.'}
+                              : {cls:'warn',msg:'Brackets match. A function definition ends with a period.'};
+  return {cls:'ok',msg:'✓ Brackets match.'};
 }
 document.querySelectorAll('.editor[data-id]').forEach(box=>{
-  const id=box.dataset.id, startEl=box.querySelector('script[type="text/plain"]');
+  const id=box.dataset.id, lang=langOf(box.dataset.lang), L=LANGS[lang], startEl=box.querySelector('script[type="text/plain"]');
+  const PAIRS={'(':')','[':']','{':'}'}; (L.str||[]).forEach(q=>PAIRS[q]=q);
+  const CLOSERS=new Set([')',']','}']), TAB=' '.repeat(L.tab||2);
   const start=startEl? startEl.textContent.replace(/^\n/,'').replace(/\s+$/,'')+'\n' : '';
   const KEYED='code:'+location.pathname+':'+id;
   let saved=null; try{ saved=localStorage.getItem(KEYED); }catch(e){}
-  box.innerHTML='<div class="ed"><div class="ed-bar"><span class="ttl">Your code</span><span class="sv">saved</span>'+
+  box.innerHTML='<div class="ed"><div class="ed-bar"><span class="ttl">Your code · '+lang+'</span><span class="sv">saved</span>'+
     '<button data-a="reset" title="Go back to the starting code">Reset</button><button class="go" data-a="cmp">Compare with answer</button></div>'+
     '<div class="ed-body"><pre class="ed-gut">1</pre><div class="ed-wrap"><pre class="ed-hl"><code></code></pre>'+
     '<textarea class="ed-ta" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Code answer for '+id+'"></textarea></div></div>'+
@@ -376,14 +450,15 @@ document.querySelectorAll('.editor[data-id]').forEach(box=>{
   let tmr=null;
   function paint(){
     const v=ta.value, n=v.split('\n').length;
-    hlc.innerHTML=hl(v)+(v.endsWith('\n')?' ':'');
+    hlc.innerHTML=hl(v,lang)+(v.endsWith('\n')?' ':'');
     gut.textContent=Array.from({length:Math.max(n,4)},(_,k)=>k+1).join('\n');
     box.querySelector('.ed-wrap').style.height='calc('+Math.max(n,4)+' * 1.55em + 24px + 12px)';
     if(!v.trim()){ msg.className='msg'; msg.textContent='Empty. Try it before you compare.'; }
-    else { const r=checkErl(v); msg.className='msg '+r.cls; msg.textContent=r.msg; }
+    else { const r=checkCode(v,lang); msg.className='msg '+r.cls; msg.textContent=r.msg; }
   }
   function store(){ clearTimeout(tmr); tmr=setTimeout(()=>{ try{ localStorage.setItem(KEYED,ta.value); sv.classList.add('on'); setTimeout(()=>sv.classList.remove('on'),900);}catch(e){} },400); }
   function ins(text){ if(!document.execCommand('insertText',false,text)){ ta.setRangeText(text,ta.selectionStart,ta.selectionEnd,'end'); ta.dispatchEvent(new Event('input')); } }
+  const noPair=s=>L.charLit && ta.value[s-1]===L.charLit;
   ta.addEventListener('input',()=>{paint(); store();});
   ta.addEventListener('scroll',()=>{ hlp.scrollLeft=ta.scrollLeft; });
   ta.addEventListener('keydown',e=>{
@@ -392,29 +467,28 @@ document.querySelectorAll('.editor[data-id]').forEach(box=>{
     if(e.key==='Tab'){
       e.preventDefault();
       const ls=v.lastIndexOf('\n',s-1)+1;
-      if(s===en && !e.shiftKey){ ins('  '); return; }
+      if(s===en && !e.shiftKey){ ins(TAB); return; }
       const le=v.indexOf('\n',en-(en>s&&v[en-1]==='\n'?1:0)); const end=le<0?v.length:le;
-      const block=v.slice(ls,end).split('\n').map(l=>e.shiftKey?l.replace(/^ {1,2}/,''):'  '+l).join('\n');
+      const block=v.slice(ls,end).split('\n').map(l=>e.shiftKey?l.replace(new RegExp('^ {1,'+TAB.length+'}'),''):TAB+l).join('\n');
       ta.setSelectionRange(ls,end); ins(block); ta.setSelectionRange(ls,ls+block.length); return;
     }
     if(e.key==='Enter' && !e.metaKey && !e.ctrlKey){
       e.preventDefault();
       const ls=v.lastIndexOf('\n',s-1)+1, before=v.slice(ls,s), ind=before.match(/^ */)[0];
-      const t=before.replace(/%.*$/,'').trimEnd();
-      const more=/(->|\bof|\breceive|\bbegin|\bafter|[\(\[\{])$/.test(t)?'  ':'';
+      const t=(L.line?before.split(L.line)[0]:before).trimEnd();
+      const more=(L.indent||/[\(\[\{]$/).test(t)?TAB:'';
       const nxt=v[s], prv=v[s-1];
-      if(more && prv && PAIRS[prv]===nxt && prv!=='"'){ ins('\n'+ind+'  \n'+ind); ta.setSelectionRange(s+1+ind.length+2,s+1+ind.length+2); return; }
+      if(more && prv && CLOSERS.has(nxt) && PAIRS[prv]===nxt){ ins('\n'+ind+TAB+'\n'+ind); ta.setSelectionRange(s+1+ind.length+TAB.length,s+1+ind.length+TAB.length); return; }
       ins('\n'+ind+more); return;
     }
-    if(e.key==='Backspace' && s===en && s>0 && PAIRS[v[s-1]]===v[s] && v[s-2]!=='$'){
+    if(e.key==='Backspace' && s===en && s>0 && PAIRS[v[s-1]]===v[s] && !noPair(s-1)){
       e.preventDefault(); ta.setSelectionRange(s-1,s+1); ins(''); if(ta.value.length===v.length){ ta.setRangeText('',s-1,s+1,'end'); ta.dispatchEvent(new Event('input')); } return;
     }
     if(e.metaKey||e.ctrlKey||e.altKey) return;
-    if(CLOSERS.has(e.key) || (e.key==='"' && v[s]==='"' && s===en)){
-      if(v[s]===e.key && s===en){ e.preventDefault(); ta.setSelectionRange(s+1,s+1); return; }
-    }
-    if(PAIRS[e.key] && v[s-1]!=='$'){
-      if(e.key==='"' && /[A-Za-z0-9]/.test(v[s-1]||'')) return;
+    const isQuote=(L.str||[]).includes(e.key);
+    if((CLOSERS.has(e.key)||isQuote) && v[s]===e.key && s===en){ e.preventDefault(); ta.setSelectionRange(s+1,s+1); return; }
+    if(PAIRS[e.key] && !noPair(s)){
+      if(isQuote && /\w/.test(v[s-1]||'')) return;
       e.preventDefault();
       const sel=v.slice(s,en); ins(e.key+sel+PAIRS[e.key]);
       if(!sel) ta.setSelectionRange(s+1,s+1); else ta.setSelectionRange(s+1,s+1+sel.length);
@@ -428,7 +502,6 @@ document.querySelectorAll('.editor[data-id]').forEach(box=>{
   });
   paint();
 });
-
 
 /* ---------- multiple choice ---------- */
 document.querySelectorAll('.mcq').forEach(q=>{
