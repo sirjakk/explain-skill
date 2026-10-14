@@ -19,6 +19,11 @@ Example. Asked "what's the `*` and `&` in `int *p = &x;`?":
 It also uses small diagrams when they're faster than words. For homework, it
 teaches with a different example instead of giving the answer.
 
+For a study guide or exam prep, it builds an HTML teaching page from
+`references/teaching-page-template.html`. Each lesson has the course's own
+words, code followed by a diagram, a worked example, a trap to avoid, and new
+practice questions with hidden answers.
+
 ## Install
 
 Claude Code:

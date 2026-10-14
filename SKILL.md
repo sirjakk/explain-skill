@@ -1,6 +1,6 @@
 ---
 name: explain
-description: Teach a concept to a beginner in very short, simple English with tiny concrete examples. Use this whenever the user wants to understand something rather than just get it done, for example "what is X", "how does X work", "I don't get X", "explain this code", "walk me through it", "why does this work", "teach me", "look at my work", or when they sound lost or confused about a topic, course material, homework, or code. Use it even if they never say "explain".
+description: Teach a concept to a beginner in very short, simple English with tiny concrete examples. Use this whenever the user wants to understand something rather than just get it done, for example "what is X", "how does X work", "I don't get X", "explain this code", "walk me through it", "why does this work", "teach me", "look at my work", "make a study guide", "help me prepare for the exam", or when they sound lost or confused about a topic, course material, homework, or code. Use it even if they never say "explain".
 ---
 
 # Explain
@@ -87,5 +87,14 @@ Unless they say otherwise, they want to learn, not get answers.
   up.
 - **"Look at my work":** say how close they are in one line, then list two or
   three inputs to try that show the problem. No fix.
+
+## Study guides and teaching pages
+
+When they ask for a study guide, exam prep, a cheat sheet, or a page that
+teaches a whole topic, follow [references/teaching-page.md](references/teaching-page.md)
+and start from [references/teaching-page-template.html](references/teaching-page-template.html).
+They have said they love this format and these colors, so keep both. Each
+lesson goes: one-line idea, the slide's own words, code then a diagram, a worked
+example, a trap, then new questions with hidden answers.
 
 See [references/examples.md](references/examples.md) for more short answers.
