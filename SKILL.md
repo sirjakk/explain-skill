@@ -45,8 +45,9 @@ That's the whole answer. No headings, no tables, no analogy section, no
 
 ## Before you answer (think, don't write)
 
-- **What did they mean?** They type fast and misspell. "worktree" in a course
-  that uses `wtree` means `wtree`.
+- **What did they mean?** They type fast and misspell. A near-miss of a name
+  from their own material means that name: "worktree" in a course whose library
+  is called `wtree` means `wtree`.
 - **What's the one wrong idea?** "It seems like p is just x" shows the exact
   confusion. Fix that one thing.
 - **Check their material** (slides, docs, their code) and use its words.

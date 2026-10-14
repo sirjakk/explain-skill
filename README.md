@@ -4,7 +4,43 @@ An agent skill for people who hate reading. The agent answers "what is X" or
 "I don't get X" in one or two simple sentences plus a tiny example, and stops.
 You ask for more if you want it.
 
-Example. Asked "what's the `*` and `&` in `int *p = &x;`?":
+> **A personal note.** I made this for myself. I'm a visual learner, and long
+> walls of text lose me. It's tuned to how I learn: short sentences, real
+> examples, and lots of diagrams. If it helps you too, please use it. If you
+> have ideas to make it better, open an
+> [issue](https://github.com/sirjakk/explain-skill/issues) or a pull request.
+> I'd love to hear them.
+
+## Install
+
+```sh
+npx explain-skill install
+```
+
+It asks where to put the skill: Claude Code, Codex and other agents that read
+`~/.agents/skills`, or both. Start a new agent session afterwards.
+
+| Command | What it does |
+| --- | --- |
+| `npx explain-skill install` | Install the skill. Add `--claude`, `--agents`, or `--all` to skip the question. |
+| `npx explain-skill update` | Replace the installed copy with the latest version. |
+| `npx explain-skill status` | Show where it is installed. |
+| `npx explain-skill uninstall` | Remove a copy this tool installed. |
+
+The installer never touches a folder it didn't create. It skips git clones and
+links, and only replaces other folders if you add `--force`.
+
+Prefer git? Clone it straight into the skills folder, and update with
+`git pull`:
+
+```sh
+git clone https://github.com/sirjakk/explain-skill.git ~/.claude/skills/explain
+git clone https://github.com/sirjakk/explain-skill.git ~/.agents/skills/explain
+```
+
+## What it does
+
+Asked "what's the `*` and `&` in `int *p = &x;`?":
 
 > `&x` means "where `x` lives." `p` holds that address, and `*p` means "go
 > there," so `*p` is `x` but `p` is not.
@@ -16,28 +52,35 @@ Example. Asked "what's the `*` and `&` in `int *p = &x;`?":
 > // now x is 7
 > ```
 
-It also uses small diagrams when they're faster than words. For homework, it
-teaches with a different example instead of giving the answer.
+- It draws small diagrams when they're faster than words.
+- For homework, it teaches with a different example instead of giving the
+  answer.
+- When you say "look at my work", it tells you how close you are and gives you
+  inputs to test. It doesn't hand over the fix.
 
-For a study guide or exam prep, it teaches in chat and asks if you also want an
-interactive HTML page. If you say yes, it builds one from
-`references/teaching-page-template.html`. Code boxes support Python,
-JavaScript, TypeScript, Java, C, C++, Go, Rust, Erlang, SQL, and more. Each lesson has the course's own
-words, code followed by a diagram, a worked example, a trap to avoid, and new
-practice questions with hidden answers.
+## Study pages
 
-## Install
+For a study guide or exam prep, it teaches in chat first, then asks if you also
+want an interactive HTML page. It only builds one if you say yes.
 
-Claude Code:
+Each lesson on the page has:
 
-```sh
-git clone https://github.com/sirjakk/explain-skill.git ~/.claude/skills/explain
-```
+- the one idea, in one sentence
+- the source's own words, quoted with the page number
+- code followed by a diagram
+- a worked example with real values
+- a trap to avoid
+- new practice questions, each with a hint and a hidden answer
 
-Codex and other agents that read `~/.agents/skills`:
+Questions that ask you to write code get a code box that colors as you type,
+indents for you, closes brackets, and checks them live. It saves your answer in
+the browser. It supports Python, JavaScript, TypeScript, Java, Kotlin, C#, C,
+C++, Go, Rust, Swift, PHP, Ruby, Elixir, Lua, Haskell, SQL, Bash, and Erlang.
 
-```sh
-git clone https://github.com/sirjakk/explain-skill.git ~/.agents/skills/explain
-```
+The page is a single HTML file that opens in any browser. The design lives in
+`references/teaching-page-template.html`, and the rules in
+`references/teaching-page.md`.
 
-Start a new session after installing. Update with `git pull` in that folder.
+## License
+
+MIT. Use it, change it, share it.

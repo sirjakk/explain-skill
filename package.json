@@ -1,0 +1,39 @@
+{
+  "name": "explain-skill",
+  "version": "1.0.0",
+  "description": "An agent skill that teaches like a patient tutor: short plain sentences, tiny examples, diagrams, and optional interactive study pages.",
+  "bin": {
+    "explain-skill": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "SKILL.md",
+    "references/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "agent-skill",
+    "claude-code",
+    "codex",
+    "skills",
+    "teaching",
+    "study-guide",
+    "learning",
+    "education",
+    "ai"
+  ],
+  "author": "sirjakk",
+  "license": "MIT",
+  "homepage": "https://github.com/sirjakk/explain-skill#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sirjakk/explain-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sirjakk/explain-skill/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
