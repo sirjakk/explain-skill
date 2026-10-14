@@ -7,7 +7,8 @@
   Offline use: download https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js,
   replace the <script src=...mermaid...> tag near the end with an inline <script>
   holding the file (escape any "</script" as "<\/script").
-  The code highlighter is tuned for Erlang (class="erl"). Adapt hl() for other languages.
+  The code highlighter and the editor check are tuned for Erlang (class="erl").
+  For other languages, adapt hl() and checkErl().
 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -155,6 +156,30 @@ table.trace td{font-family:var(--mono);font-size:14px}
 .chart .tt{position:absolute;pointer-events:none;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.08);display:none;white-space:nowrap}
 .pill{display:inline-block;font:600 13px var(--mono);padding:1px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
 .up{color:var(--blue);font-weight:700}.down{color:var(--orange);font-weight:700}
+/* code editor */
+.ed{margin:12px 0 10px;border-radius:12px;overflow:hidden;background:#1e1f24;border:1px solid #2e3038;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.ed:focus-within{border-color:#2a78d6;box-shadow:0 0 0 3px rgba(42,120,214,.25)}
+.ed-bar{display:flex;align-items:center;gap:8px;padding:7px 10px 7px 14px;background:#26282f;border-bottom:1px solid #2e3038;color:#c9ccd4;font:600 12.5px var(--sans)}
+.ed-bar .ttl{letter-spacing:.06em;text-transform:uppercase}
+.ed-bar .sv{font-weight:500;color:#8b929e;margin-right:auto;opacity:0;transition:opacity .3s}
+.ed-bar .sv.on{opacity:1}
+.ed-bar button{all:unset;cursor:pointer;padding:3px 10px;border-radius:7px;font:600 12.5px var(--sans);color:#e6e6e6;background:#3a3d47}
+.ed-bar button:hover{background:#4a4e5a}
+.ed-bar button.go{background:#14855c;color:#fff}
+.ed-bar button.go:hover{background:#18a070}
+.ed-body{display:flex;font:14.5px/1.55 var(--mono)}
+.ed-gut{margin:0;padding:12px 8px 12px 12px;color:#5c6170;text-align:right;user-select:none;background:#1b1c20;border-right:1px solid #2a2c33;min-width:38px;font:inherit;white-space:pre}
+.ed-wrap{position:relative;flex:1;min-width:0}
+.ed-hl,.ed-ta{margin:0;border:0;padding:12px 14px;font:inherit;white-space:pre;tab-size:2;letter-spacing:normal;word-spacing:normal;box-sizing:border-box}
+.ed-hl{color:#e6e6e6;overflow:hidden;pointer-events:none;min-height:100%}
+.ed-hl code{font:inherit;background:none;padding:0;color:inherit}
+.ed-ta{position:absolute;inset:0;width:100%;height:100%;resize:none;outline:none;background:transparent;color:transparent;caret-color:#ffcb6b;overflow-x:auto;overflow-y:hidden}
+.ed-ta::placeholder{color:#6b7080;font-style:italic}
+.ed-ta::selection{background:rgba(127,196,255,.32)}
+.ed-st{display:flex;gap:8px;align-items:baseline;padding:6px 14px 8px;background:#1b1c20;border-top:1px solid #2a2c33;font:13px var(--sans);color:#8b929e}
+.ed-st .ok{color:#5fd39a}.ed-st .bad{color:#ff8a80}.ed-st .warn{color:#ffcb6b}
+.ed-st .keys{margin-left:auto;white-space:nowrap}
+.ed-st kbd{font:600 11.5px var(--mono);border:1px solid #3a3d47;border-radius:4px;padding:0 4px;color:#c9ccd4}
 @media print{nav.side{display:none}.layout{display:block}details{display:block}details > *{display:block}}
 </style>
 </head>
@@ -251,6 +276,13 @@ flowchart TB
 
   <div class="q"><div class="qh"><span class="qn">Q1.1</span><span class="qt">Question title</span><span class="lvl">exam style</span></div>
     <p>A new problem at exam difficulty.</p>
+    <!-- Code editor: put one in every question that asks them to write or fix code.
+         data-id must be unique on the page (it is the save key). The text/plain script
+         holds optional starter code, such as the function head or the buggy code to fix.
+         data-placeholder is optional. -->
+    <div class="editor" data-id="q1-1" data-placeholder="Write your answer here. It saves as you type."><script type="text/plain">
+sum(L) ->
+</script></div>
     <details class="hint"><summary>Hint</summary><div class="ans"><p>A nudge, not the answer.</p></div></details>
     <details><summary>Show answer</summary><div class="ans"><p>The working, a check, and one line on why.</p></div></details>
   </div>
@@ -295,6 +327,108 @@ function hl(src){
   return out+esc(src.slice(i));
 }
 document.querySelectorAll('code.erl').forEach(el=>{ el.innerHTML=hl(el.textContent); });
+/* ---------- code editor ---------- */
+const PAIRS={'(':')','[':']','{':'}','"':'"'}, CLOSERS=new Set([')',']','}']);
+function checkErl(src){
+  const stack=[]; let line=1, i=0, last='';
+  const isW=c=>/[A-Za-z0-9_@]/.test(c);
+  while(i<src.length){
+    const c=src[i];
+    if(c==='\n'){line++; i++; continue;}
+    if(c==='%'){ while(i<src.length&&src[i]!=='\n') i++; continue; }
+    if(c==='"'){ const L=line; i++; while(i<src.length&&src[i]!=='"'){ if(src[i]==='\\') i++; if(src[i]==='\n') line++; i++; }
+      if(i>=src.length) return {cls:'bad',msg:'Line '+L+': this string has no closing quote.'}; i++; last='"'; continue; }
+    if(c==='$'){ i+= src[i+1]==='\\'?3:2; last='x'; continue; }
+    if('([{'.includes(c)){ stack.push({c,line}); last=c; i++; continue; }
+    if(CLOSERS.has(c)){ const want={')':'(',']':'[','}':'{'}[c]; const top=stack.pop();
+      if(!top) return {cls:'bad',msg:'Line '+line+': extra "'+c+'" with nothing to close.'};
+      if(top.c!==want) return {cls:'bad',msg:'Line '+line+': "'+c+'" closes "'+top.c+'" from line '+top.line+'.'};
+      last=c; i++; continue; }
+    if(/[a-z]/.test(c) && !isW(src[i-1]||'')){ let j=i; while(j<src.length&&isW(src[j])) j++; const w=src.slice(i,j);
+      if(['case','receive','if','begin','try'].includes(w)) stack.push({c:w,line});
+      else if(w==='fun'){ let k=j; while(src[k]===' ') k++; if(src[k]==='(') stack.push({c:'fun',line}); }
+      else if(w==='end'){ const top=stack.pop();
+        if(!top) return {cls:'bad',msg:'Line '+line+': "end" with no fun, case, receive, or if to close.'};
+        if('([{'.includes(top.c)) return {cls:'bad',msg:'Line '+line+': "end" came before "'+PAIRS[top.c]+'" closed the "'+top.c+'" from line '+top.line+'.'}; }
+      last=w; i=j; continue; }
+    if(!/\s/.test(c)) last=c; i++;
+  }
+  if(stack.length){ const t=stack[stack.length-1];
+    return '([{'.includes(t.c) ? {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' is still open.'}
+                              : {cls:'warn',msg:'"'+t.c+'" from line '+t.line+' still needs an "end".'}; }
+  if(last!=='.') return {cls:'warn',msg:'Brackets match. A function definition ends with a period.'};
+  return {cls:'ok',msg:'✓ Brackets and ends match. Ends with a period.'};
+}
+document.querySelectorAll('.editor[data-id]').forEach(box=>{
+  const id=box.dataset.id, startEl=box.querySelector('script[type="text/plain"]');
+  const start=startEl? startEl.textContent.replace(/^\n/,'').replace(/\s+$/,'')+'\n' : '';
+  const KEYED='code:'+location.pathname+':'+id;
+  let saved=null; try{ saved=localStorage.getItem(KEYED); }catch(e){}
+  box.innerHTML='<div class="ed"><div class="ed-bar"><span class="ttl">Your code</span><span class="sv">saved</span>'+
+    '<button data-a="reset" title="Go back to the starting code">Reset</button><button class="go" data-a="cmp">Compare with answer</button></div>'+
+    '<div class="ed-body"><pre class="ed-gut">1</pre><div class="ed-wrap"><pre class="ed-hl"><code></code></pre>'+
+    '<textarea class="ed-ta" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Code answer for '+id+'"></textarea></div></div>'+
+    '<div class="ed-st"><span class="msg"></span><span class="keys"><kbd>Tab</kbd> indent · <kbd>Esc</kbd> leave box</span></div></div>';
+  const ta=box.querySelector('textarea'), hlc=box.querySelector('.ed-hl code'), hlp=box.querySelector('.ed-hl'),
+        gut=box.querySelector('.ed-gut'), msg=box.querySelector('.msg'), sv=box.querySelector('.sv');
+  ta.placeholder = box.dataset.placeholder || 'Write your answer here. It saves as you type.';
+  ta.value = saved!==null ? saved : start;
+  let tmr=null;
+  function paint(){
+    const v=ta.value, n=v.split('\n').length;
+    hlc.innerHTML=hl(v)+(v.endsWith('\n')?' ':'');
+    gut.textContent=Array.from({length:Math.max(n,4)},(_,k)=>k+1).join('\n');
+    box.querySelector('.ed-wrap').style.height='calc('+Math.max(n,4)+' * 1.55em + 24px + 12px)';
+    if(!v.trim()){ msg.className='msg'; msg.textContent='Empty. Try it before you compare.'; }
+    else { const r=checkErl(v); msg.className='msg '+r.cls; msg.textContent=r.msg; }
+  }
+  function store(){ clearTimeout(tmr); tmr=setTimeout(()=>{ try{ localStorage.setItem(KEYED,ta.value); sv.classList.add('on'); setTimeout(()=>sv.classList.remove('on'),900);}catch(e){} },400); }
+  function ins(text){ if(!document.execCommand('insertText',false,text)){ ta.setRangeText(text,ta.selectionStart,ta.selectionEnd,'end'); ta.dispatchEvent(new Event('input')); } }
+  ta.addEventListener('input',()=>{paint(); store();});
+  ta.addEventListener('scroll',()=>{ hlp.scrollLeft=ta.scrollLeft; });
+  ta.addEventListener('keydown',e=>{
+    const s=ta.selectionStart, en=ta.selectionEnd, v=ta.value;
+    if(e.key==='Escape'){ ta.blur(); return; }
+    if(e.key==='Tab'){
+      e.preventDefault();
+      const ls=v.lastIndexOf('\n',s-1)+1;
+      if(s===en && !e.shiftKey){ ins('  '); return; }
+      const le=v.indexOf('\n',en-(en>s&&v[en-1]==='\n'?1:0)); const end=le<0?v.length:le;
+      const block=v.slice(ls,end).split('\n').map(l=>e.shiftKey?l.replace(/^ {1,2}/,''):'  '+l).join('\n');
+      ta.setSelectionRange(ls,end); ins(block); ta.setSelectionRange(ls,ls+block.length); return;
+    }
+    if(e.key==='Enter' && !e.metaKey && !e.ctrlKey){
+      e.preventDefault();
+      const ls=v.lastIndexOf('\n',s-1)+1, before=v.slice(ls,s), ind=before.match(/^ */)[0];
+      const t=before.replace(/%.*$/,'').trimEnd();
+      const more=/(->|\bof|\breceive|\bbegin|\bafter|[\(\[\{])$/.test(t)?'  ':'';
+      const nxt=v[s], prv=v[s-1];
+      if(more && prv && PAIRS[prv]===nxt && prv!=='"'){ ins('\n'+ind+'  \n'+ind); ta.setSelectionRange(s+1+ind.length+2,s+1+ind.length+2); return; }
+      ins('\n'+ind+more); return;
+    }
+    if(e.key==='Backspace' && s===en && s>0 && PAIRS[v[s-1]]===v[s] && v[s-2]!=='$'){
+      e.preventDefault(); ta.setSelectionRange(s-1,s+1); ins(''); if(ta.value.length===v.length){ ta.setRangeText('',s-1,s+1,'end'); ta.dispatchEvent(new Event('input')); } return;
+    }
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    if(CLOSERS.has(e.key) || (e.key==='"' && v[s]==='"' && s===en)){
+      if(v[s]===e.key && s===en){ e.preventDefault(); ta.setSelectionRange(s+1,s+1); return; }
+    }
+    if(PAIRS[e.key] && v[s-1]!=='$'){
+      if(e.key==='"' && /[A-Za-z0-9]/.test(v[s-1]||'')) return;
+      e.preventDefault();
+      const sel=v.slice(s,en); ins(e.key+sel+PAIRS[e.key]);
+      if(!sel) ta.setSelectionRange(s+1,s+1); else ta.setSelectionRange(s+1,s+1+sel.length);
+    }
+  });
+  box.querySelector('.ed-bar').addEventListener('click',e=>{
+    const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
+    if(a==='reset'){ if(ta.value!==start && !confirm('Replace your code with the starting code?')) return; ta.value=start; paint(); store(); ta.focus(); }
+    if(a==='cmp'){ const q=box.closest('.q'); const ds=q?[...q.querySelectorAll(':scope > details:not(.hint)')]:[]; const d=ds[ds.length-1];
+      if(d){ d.open=true; d.scrollIntoView({behavior:'smooth',block:'start'}); } }
+  });
+  paint();
+});
+
 
 /* ---------- multiple choice ---------- */
 document.querySelectorAll('.mcq').forEach(q=>{

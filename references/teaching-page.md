@@ -70,6 +70,13 @@ do this" checkbox saved in localStorage.
   copy. Change the problem, not just the numbers.
 - Mix the kinds: warm-up, exam style, and medium or hard. Use multiple choice
   buttons for quick concept checks.
+- **Every question that asks them to write or fix code gets a code editor**
+  (`<div class="editor" data-id="...">` in the template). Put it under the
+  question and above the hint. Give starter code: the function head to fill in,
+  or the buggy code to fix. The editor colors the code as they type, shows line
+  numbers, indents, closes brackets, checks brackets and `end`s live, saves to
+  localStorage, and has a "Compare with answer" button. Questions answered on
+  paper, like traces, numbers, or trees, don't get one.
 - Every question has a hidden answer. Harder ones also get a hint first.
 - Some questions should be "fill it in on paper, then press Next to check".
 - Answers show the working, a check against the example, and one line on why.

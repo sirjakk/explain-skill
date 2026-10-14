@@ -95,6 +95,7 @@ teaches a whole topic, follow [references/teaching-page.md](references/teaching-
 and start from [references/teaching-page-template.html](references/teaching-page-template.html).
 They have said they love this format and these colors, so keep both. Each
 lesson goes: one-line idea, the slide's own words, code then a diagram, a worked
-example, a trap, then new questions with hidden answers.
+example, a trap, then new questions with hidden answers. Any question that asks
+them to write or fix code gets the template's code editor, with starter code.
 
 See [references/examples.md](references/examples.md) for more short answers.
